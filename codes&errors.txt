@@ -1,0 +1,30 @@
+/login
+	params： user_id
+			 user_name(可空)
+			 sexual(可空)
+			 district(可空)
+			 born(可空)
+			 user_intro(可空)
+	登录操作，若为新用户，则向数据库添加用户
+	{'code':'1001', 'msg':'creat new user successfully'}
+	{'code':'1002', 'msg':'login in successfully'}
+	{'code':'1003', 'msg':'login error'}
+	
+/get_slide_images
+	no params
+	获取发现页面的slide images
+	{'code':'1004', 'msg':'get slide images error'}
+
+/create_group
+	params:  user_id (创建者id)
+			 group_image (可以没有)
+			 group_intro
+			 money (int)
+			 limit_num (int)(小组最大人数)
+			 duration (int)(持续时间)
+			 type (打卡类型)	 
+	创建小组
+	{'code': '1005', 'msg': 'invaild params'}
+	{'code': '1006', 'msg': 'create group failed'}
+	{'code': '1007', 'msg': 'create group successfully'}
+	
