@@ -1,30 +1,144 @@
 /login
-	params： user_id
-			 user_name(可空)
-			 sexual(可空)
-			 district(可空)
-			 born(可空)
-			 user_intro(可空)
 	登录操作，若为新用户，则向数据库添加用户
-	{'code':'1001', 'msg':'creat new user successfully'}
-	{'code':'1002', 'msg':'login in successfully'}
-	{'code':'1003', 'msg':'login error'}
+	params： user_id
+			 user_name
+	成功：	{'code':'1001', 'msg':'creat new user successfully'}
+			{'code':'1002', 'msg':'login in successfully'}
+	错误：	{'code':'1003', 'msg':'login error'}
 	
 /get_slide_images
-	no params
 	获取发现页面的slide images
-	{'code':'1004', 'msg':'get slide images error'}
+	no params
+	错误：	{'code':'1004', 'msg':'get slide images error'}
+	成功：	["", "", "",]
 
 /create_group
+	创建小组
 	params:  user_id (创建者id)
-			 group_image (可以没有)
+			 group_name
+			 group_image (可选)
 			 group_intro
 			 money (int)
 			 limit_num (int)(小组最大人数)
 			 duration (int)(持续时间)
-			 type (打卡类型)	 
-	创建小组
-	{'code': '1005', 'msg': 'invaild params'}
-	{'code': '1006', 'msg': 'create group failed'}
-	{'code': '1007', 'msg': 'create group successfully'}
+			 type (打卡类型, '单词', '早起', '运动', '读书')	 
+	错误： 	{'code': '1005', 'msg': 'invaild params'}
+			{'code': '1006', 'msg': 'create group failed'}
+	成功：	{'code': '1007', 'msg': 'create group successfully', 'group_id': gp_id}
+	
+/get_my_group
+	获取我的小组
+	params: user_id
+			is_finished (yes/no/full，可选，默认为no)
+	错误：	{'code': '1008', 'msg': 'params error'}
+			{'code': '1009', 'msg': 'get groups error'}
+	成功： 	[
+				{
+					"create_date": "Sat, 31 Mar 2018 11:39:46 GMT",
+					"duration": 14,
+					"group_id": 2,
+					"group_name": "打卡小组"
+					"group_image":  "...",
+					"group_intro": "欢迎大家！",
+					"is_creater": "yes",
+					"is_finished": "no",
+					"limit_num": 100,
+					"member_num": 1,
+					"money": 5,
+					"type": "单词",
+					"user_id": "test"
+					"daka_records": [] #该用户在该小组所有的打卡记录
+				},
+				{
+					
+				}
+			]
+	
+/commit_daka
+	打卡操作
+	params:	group_id
+			user_id
+			daka_images (["", "", ""], 可选)
+			daka_words (string, 可选)
+	成功：	{'code': '1010', 'msg': 'daka commit success'}
+	错误：	{'code': '1011', 'msg': 'params error'}
+			{'code': '1012', 'msg': 'daka commit error'}
+			
+/commit_appeal
+	申诉操作
+	params：user_id
+			group_id
+			date
+			content (可选)
+	成功：	{'code': '1013', 'msg': 'appeal commit success'}
+	错误：	{'code': '1014', 'msg': 'params error'}
+			{'code': '1015', 'msg': 'appeal commit error'}
+			
+/get_my_appeal
+	查看我的申诉
+	params: user_id
+	成功：	[
+			  {
+				"content": "test appeal2",
+				"date": "Fri, 30 Mar 2018 12:48:02 GMT",
+				"group_id": 2,
+				"group_name": "打卡小组",
+				"result": "待审核",
+				"user_id": "test"
+			  },
+			  {
+				
+			  }
+			]
+	错误：	{'code': '1016', 'msg': 'params error'}
+			{'code': '1017', 'msg': 'get my appeal error'}
+			
+/get_others_daka_daka_info
+	获取一个其他用户的打卡信息，用于评定
+	params: user_id (用户本人id)
+			type (打卡类型，可选，'读书', '单词', '早起', '运动', 默认不限制)
+	错误：	{'code': '1022', 'msg': 'get others daka info error'}
+			{'code': '1023', 'msg': 'params error'}
+	成功：	{'code': '1021', 'msg': 'no user need to judge'}
+			{
+			  "daka_date": "Sat, 31 Mar 2018 16:17:56 GMT",
+			  "duration": 14,
+			  "group_create_date": "Sat, 31 Mar 2018 11:39:46 GMT",
+			  "group_id": 2,
+			  "group_image": "https://.....jpg",
+			  "group_intro": "欢迎大家！",
+			  "group_name": "打卡小组",
+			  "is_finished": "no",
+			  "judge_count": 1,
+			  "judge_result": "待评定",
+			  "judge_yes_cnt": 1,
+			  "limit_num": 100,
+			  "machine_judge": "未评定",
+			  "member_num": 1,
+			  "money": 5,
+			  "type": "单词",
+			  "user_id": "test",
+			  "words": "test2 打卡"
+			}
+			
+			
+/commit_judgement
+	用户提交评定
+	params:	user_id (被评定人)
+			group_id
+			date (被评定人的打卡时间)
+			assessor_id (评定人id)
+			is_passed ('yes' or 'no')
+	成功：	{'code': '1018', 'msg': 'commit judgement successfully'}
+	错误：	{'code': '1019', 'msg': 'invaild params'}
+			{'code': '1020', 'msg': 'commit judgement error'}
+			
+			
+	{'code': '', 'msg': ''}
+	
+	
+	
+	
+	
+	
 	
