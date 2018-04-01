@@ -18,6 +18,15 @@ def login():
     return jsonify(result)
 
 
+@app.route('/get_user_info')
+def get_user_info():
+    if 'user_id' not in request.args:
+        result = {'code': '1030', 'msg': 'invaild params'}
+    else:
+        result = mysql.get_user_info(request.args)
+    return jsonify(result)
+
+
 @app.route('/get_slide_images')
 def get_slide_images():
     result = mysql.get_slide_images()
@@ -49,6 +58,25 @@ def get_my_groups():
     else:
         result = mysql.get_my_groups(request.args)
 
+    return jsonify(result)
+
+
+@app.route('/get_recommend_groups')
+def get_recommend_groups():
+    if 'user_id' not in request.args:
+        result = {'code': '1024', 'msg': 'params error'}
+    else:
+        result = mysql.get_recommend_groups(request.args)
+    return jsonify(result)
+
+
+@app.route('/join_group')
+def join_group():
+    if 'user_id' not in request.args or \
+                    'group_id' not in request.args:
+        result = {'code': '1027', 'msg': 'params error'}
+    else:
+        result = mysql.join_group(request.args)
     return jsonify(result)
 
 
@@ -100,7 +128,6 @@ def commit_judgement():
                     'is_passed' not in request.args:
         result = {'code': '1019', 'msg': 'invaild params'}
     else:
-
         result = mysql.commit_judgement(request.args)
     return jsonify(result)
 

@@ -59,6 +59,35 @@ class sql(object):
             self.db.rollback()
             return {'code': '1003', 'msg': ' login error'}
 
+    def get_user_info(self, params):
+
+        sql_get_user_info = \
+            "select user_id, user_name, sexual, \
+                district, born, user_intro, user_image \
+            from user_info \
+            where user_id = '%s'" % (params['user_id'])
+
+        try:
+            cursor = self.db.cursor()
+            cursor.execute(sql_get_user_info)
+            record = cursor.fetchone()
+            result = {}
+            result['user_id'] = record[0]
+            result['user_name'] = record[1]
+            result['sexual'] = record[2]
+            result['district'] = record[3]
+            result['born'] = record[4]
+            result['user_intro'] = record[5]
+            result['user_image'] = record[6]
+
+            cursor.close()
+            return result
+        except BaseException as e:
+            print(e)
+            return {'code': '1031', 'msg': 'get user info failed'}
+
+
+
     def get_slide_images(self):
         """
         返回滑动图片url
@@ -73,7 +102,6 @@ class sql(object):
             cursor.execute(sql)
             result = cursor.fetchall()
             cursor.close()
-            print(result)
             return result
         except BaseException as e:
             print(e)
@@ -84,15 +112,18 @@ class sql(object):
         :param params: some info
         :return: 
         """
+
+        time_now = time.strftime('%Y-%m-%d %H:%M:%S',
+                                 time.localtime(time.time()))
         if 'group_image' in params:
             sql_gp_info = "insert into group_info( \
                         group_id, group_name, group_image, create_date, \
                         group_intro, money, member_num, \
                         limit_num, duration, is_finished, type) \
                         values \
-                        (default, '%s', '%s', now(), '%s', %d, 1, %d, %d, 'no', '%s')" % \
-                          (params['group_name'],
-                           params['group_image'], params['group_intro'],
+                        (default, '%s', '%s', '%s', '%s', %d, 1, %d, %d, 'no', '%s')" % \
+                          (params['group_name'], params['group_image'],
+                           str(time_now), params['group_intro'],
                            params['money'], params['limit_num'],
                            params['duration'], params['type'])
         else:
@@ -102,8 +133,9 @@ class sql(object):
                         money, member_num, limit_num, duration, \
                         is_finished, type) \
                         values \
-                        (default, '%s', now(), '%s', %d, 1, %d, %d, 'no', '%s')" % \
-                          (params['group_name'], params['group_intro'],
+                        (default, '%s', '%s', '%s', %d, 1, %d, %d, 'no', '%s')" % \
+                          (params['group_name'], str(time_now),
+                           params['group_intro'],
                            int(params['money']), int(params['limit_num']),
                            int(params['duration']), params['type'])
 
@@ -113,8 +145,10 @@ class sql(object):
             tmp = "select last_insert_id() "
             cursor.execute(tmp)
             gp_id = cursor.fetchone()[0]
-            sql_gp_usr = "insert into group_user(group_id, user_id, is_creater) \
-                                values(%d, '%s', '%s')" % (gp_id, params['user_id'], 'yes')
+            sql_gp_usr = "insert into group_user( \
+                group_id, user_id, is_creater, join_date) \
+                values(%d, '%s', '%s', '%s')" % (
+                gp_id, params['user_id'], 'yes', str(time_now))
             cursor.execute(sql_gp_usr)
             cursor.close()
             self.db.commit()
@@ -132,16 +166,22 @@ class sql(object):
             is_fnsd = 'no'
 
         if is_fnsd == 'full':
-            sql_get_groups = "select * \
-            from group_user natural join group_info \
-            where user_id = '%s' \
-            order by create_date desc" % (params['user_id'])
+            sql_get_groups = \
+                "select group_id, user_id, is_creater, group_name, \
+                    group_image, create_date, group_intro, money, \
+                    member_num, limit_num, duration, is_finished, type \
+                from group_user natural join group_info \
+                where user_id = '%s' \
+                order by create_date desc" % (params['user_id'])
         else:
-            sql_get_groups = "select * \
-            from group_user natural join group_info \
-            where user_id = '%s' and is_finished = '%s' \
-            order by create_date desc" % (
-                params['user_id'], is_fnsd)
+            sql_get_groups = \
+                "select group_id, user_id, is_creater, group_name, \
+                    group_image, create_date, group_intro, money, \
+                    member_num, limit_num, duration, is_finished, type \
+                from group_user natural join group_info \
+                where user_id = '%s' and is_finished = '%s' \
+                order by create_date desc" % (
+                    params['user_id'], is_fnsd)
         try:
             cursor = self.db.cursor()
             cursor.execute(sql_get_groups)
@@ -150,6 +190,7 @@ class sql(object):
             for i in range(cursor.rowcount):
                 record = cursor.fetchone()
                 result = {}
+
                 result['group_id'] = record[0]
                 result['user_id'] = record[1]
                 result['is_creater'] = record[2]
@@ -182,6 +223,122 @@ class sql(object):
         except BaseException as e:
             print(e)
             return {'code': '1009', 'msg': 'get groups error'}
+
+    def get_recommend_groups(self, params):
+
+        if 'type' not in params:
+            sql_get_re_grps = \
+                "select group_id, group_name, group_image, \
+                group_intro, money, member_num, limit_num, \
+                duration, is_finished, type, create_date, \
+                user_id, is_creater \
+                from group_info natural join group_user\
+                where user_id != '%s' \
+                    and is_finished = 'no' \
+                    and member_num < limit_num \
+                    and is_creater = 'yes' \
+                order by member_num desc" % (
+                    params['user_id']
+                )
+        else:
+            sql_get_re_grps = \
+                "select group_id, group_name, group_image, \
+                group_intro, money, member_num, limit_num, \
+                duration, is_finished, type, create_date, \
+                user_id, is_creater \
+                from group_info natural join group_user\
+                where user_id != '%s' \
+                    and is_finished = 'no' \
+                    and member_num < limit_num \
+                        and is_creater = 'yes' \
+                        and type == '%s' \
+                order by member_num desc" % (
+                    params['user_id'], params['type']
+                )
+
+        try:
+            cursor = self.db.cursor()
+            cursor.execute(sql_get_re_grps)
+            results = []
+            for i in range(cursor.rowcount):
+                record = cursor.fetchone()
+                result = {}
+                result['group_id'] = record[0]
+                result['group_name'] = record[1]
+                result['group_image'] = record[2]
+                result['group_intro'] = record[3]
+                result['money'] = record[4]
+                result['member_num'] = record[5]
+                result['limit_num'] = record[6]
+                result['duration'] = record[7]
+                result['is_finished'] = record[8]
+                result['type'] = record[9]
+                result['create_date'] = record[10]
+                result['user_id'] = record[11]
+                result['is_creater'] = record[12]
+                result['user_list'] = []
+
+                cursor2 = self.db.cursor()
+                sql_get_grp_usr_list = \
+                    "select user_id from group_user \
+                    where is_creater = 'yes' and group_id = %d \
+                    UNION \
+                    select user_id from group_user \
+                    where is_creater = 'no' and group_id = %d " % (
+                        int(result['group_id']), int(result['group_id']) )
+                cursor2.execute(sql_get_grp_usr_list)
+
+                for j in range(cursor2.rowcount):
+                    daka_record = cursor2.fetchone()
+                    result['user_list'].append(daka_record[0])
+                cursor2.close()
+
+                results.append(result)
+
+            cursor.close()
+            return results
+
+        except BaseException as e:
+            print(e)
+            return {'code': '1025', 'msg': 'get recommend groups error'}
+
+    def join_group(self, params):
+
+        time_now = time.strftime('%Y-%m-%d %H:%M:%S',
+                                 time.localtime(time.time()))
+
+        sql_check_num = "select member_num, limit_num \
+            from group_info \
+            where group_id = %d" % (int(params['group_id']))
+        sql_insert_to_group_user = \
+            "insert into group_user(group_id, user_id, is_creater, join_date) \
+            values ( %d, '%s', 'no', '%s' )" % (
+                int(params['group_id']), params['user_id'], str(time_now) )
+        sql_update_grp_info = \
+            "update group_info set member_num = member_num+'1' \
+            where group_id = %d " % (int(params['group_id']))
+
+        try:
+            cursor = self.db.cursor()
+            cursor.execute(sql_check_num)
+            number = cursor.fetchone()
+            mem_num = number[0]
+            lim_num = number[1]
+            if mem_num >= lim_num:
+                cursor.close()
+                return {'code': '1028', 'msg': 'he number reached the upper limit'}
+
+            cursor.execute(sql_insert_to_group_user)
+            cursor.execute(sql_update_grp_info)
+            cursor.close()
+
+            self.db.commit()
+            return {'code': '1026', 'msg': 'join group successfully'}
+
+        except BaseException as e:
+            print(e)
+            self.db.rollback()
+            return {'code': '1029', 'msg': 'join group failed'}
 
     def commit_daka(self, params):
         if 'daka_images' in params:

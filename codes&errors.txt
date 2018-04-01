@@ -2,9 +2,26 @@
 	登录操作，若为新用户，则向数据库添加用户
 	params： user_id
 			 user_name
+			 user_image
 	成功：	{'code':'1001', 'msg':'creat new user successfully'}
 			{'code':'1002', 'msg':'login in successfully'}
 	错误：	{'code':'1003', 'msg':'login error'}
+	
+/get_user_info
+	获取用户信息
+	params:	user_id
+	失败：	{'code': '1030', 'msg': 'invaild params'}
+			{'code': '1031', 'msg': 'get user info failed'}
+	成功：	{
+			  "born": "Mon, 01 Jan 1900 00:00:00 GMT",
+			  "district": "中国",
+			  "sexual": "",
+			  "user_id": "test",
+			  "user_image": "http://......",
+			  "user_intro": "",
+			  "user_name": ""
+			}
+
 	
 /get_slide_images
 	获取发现页面的slide images
@@ -53,6 +70,44 @@
 					
 				}
 			]
+			
+/get_recommend_groups
+	获取推荐的小组
+	params:	user_id
+			type (可选，'单词', '早起', '运动', '读书', 默认为所有)
+	错误:	{'code': '1024', 'msg': 'params error'}
+			{'code': '1025', 'msg': 'get recommend groups error'}
+	成功:	[
+			  {
+				"create_date": "Sat, 31 Mar 2018 18:14:15 GMT",
+				"duration": 14,
+				"group_id": 3,
+				"group_image": "https://.....",
+				"group_intro": "欢迎大家！",
+				"group_name": "每日英语",
+				"is_creater": "yes",
+				"is_finished": "no",
+				"limit_num": 100,
+				"member_num": 1,
+				"money": 5,
+				"type": "单词",
+				"user_id": "test",
+				"user_list": [		# 改组用户列表，第一个是创建者
+				  "test"
+				]
+			  },
+			  {
+			  }
+			]
+
+/join_group
+	用户加入小组
+	params: user_id
+			group_id
+	成功:	{'code': '1026', 'msg': 'join group successfully'}
+	错误：	{'code': '1027', 'msg': 'params error'}
+			{'code': '1028', 'msg': 'he number reached the upper limit'}
+			{'code': '1029', 'msg': 'join group failed'}
 	
 /commit_daka
 	打卡操作
